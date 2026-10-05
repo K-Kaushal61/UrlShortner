@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import axios from 'axios';
-import './App.css';
+import ResultCard from './components/ResultCard'; // Naya component import kiya
 
 function App() {
   const [longUrl, setLongUrl] = useState('');
@@ -9,21 +9,17 @@ function App() {
   const [error, setError] = useState('');
 
   const handleSubmit = async (e) => {
-    e.preventDefault(); // Page ko refresh hone se rokenge
+    e.preventDefault();
     setLoading(true);
     setError('');
     setShortUrl('');
 
     try {
-      // Backend API ko POST request bhej rahe hain
       const response = await axios.post('http://localhost:5000/api/shorten', { 
         longUrl: longUrl 
       });
-      
-      // Response se short URL nikal kar state mein save karenge
       setShortUrl(response.data.shortUrl);
     } catch (err) {
-      console.error(err);
       setError('Kuch galat ho gaya. Kripya valid URL daalein.');
     } finally {
       setLoading(false);
@@ -31,33 +27,44 @@ function App() {
   };
 
   return (
-    <div className="container">
-      <h1>Simple URL Shortener</h1>
-      
-      <form onSubmit={handleSubmit} className="form">
-        <input
-          type="url"
-          placeholder="Lamba URL yahan daalein (e.g., https://example.com)"
-          value={longUrl}
-          onChange={(e) => setLongUrl(e.target.value)}
-          required
-          className="input-box"
-        />
-        <button type="submit" disabled={loading} className="btn">
-          {loading ? 'Shortening...' : 'Shorten'}
-        </button>
-      </form>
-
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-
-      {shortUrl && (
-        <div className="result">
-          <p>Aapka Short URL:</p>
-          <a href={shortUrl} target="_blank" rel="noopener noreferrer">
-            {shortUrl}
-          </a>
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
+      <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 space-y-6">
+        
+        <div className="text-center">
+          <h1 className="text-3xl font-bold text-gray-900 tracking-tight">URL Shortener</h1>
+          <p className="text-sm text-gray-500 mt-2">Paste a long link to create a short one</p>
         </div>
-      )}
+        
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <input
+              type="url"
+              placeholder="https://example.com"
+              value={longUrl}
+              onChange={(e) => setLongUrl(e.target.value)}
+              required
+              className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+            />
+          </div>
+          <button 
+            type="submit" 
+            disabled={loading} 
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors disabled:bg-blue-300"
+          >
+            {loading ? 'Shortening...' : 'Shorten URL'}
+          </button>
+        </form>
+
+        {error && (
+          <div className="p-3 bg-red-50 text-red-600 text-sm rounded-lg text-center">
+            {error}
+          </div>
+        )}
+
+        {/* Naya component yahan use kiya */}
+        <ResultCard shortUrl={shortUrl} />
+
+      </div>
     </div>
   );
 }
