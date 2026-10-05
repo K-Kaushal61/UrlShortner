@@ -15,9 +15,9 @@ function App() {
     setShortUrl('');
 
     try {
-      const response = await axios.post('https://urlshortner-wdu6.onrender.com/', { 
-        longUrl: longUrl 
-      });
+      const response = await axios.post('https://urlshortner-wdu6.onrender.com/api/shorten', { 
+  longUrl: longUrl 
+});
       setShortUrl(response.data.shortUrl);
     } catch (err) {
       setError('Kuch galat ho gaya. Kripya valid URL daalein.');
