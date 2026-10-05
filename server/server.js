@@ -51,7 +51,7 @@ app.post('/api/shorten', async (req, res) => {
 
 
 // 5. Client ko short URL bhejte hain
-    const shortUrl = `http://localhost:${PORT}/${newUrl.shortCode}`;
+    const shortUrl = `https://urlshortner-client.vercel.app/${newUrl.shortCode}`;
     return res.status(201).json({ shortUrl, originalUrl: newUrl.longUrl });
 
   } catch (error) {

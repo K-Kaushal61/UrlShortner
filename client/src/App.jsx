@@ -20,7 +20,7 @@ function App() {
 });
       setShortUrl(response.data.shortUrl);
     } catch (err) {
-      setError('Kuch galat ho gaya. Kripya valid URL daalein.');
+      setError('Error, please check the URL and try again.');
     } finally {
       setLoading(false);
     }
