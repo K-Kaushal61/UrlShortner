@@ -21,7 +21,7 @@ const shortenLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 10,
   message: {
-    error: 'Aapne bahut zyada URLs bana liye hain. Kripya 15 minute baad try karein.'
+    error: 'Too many attempts, please try after some time.'
   },
   standardHeaders: true,
   legacyHeaders: false,
