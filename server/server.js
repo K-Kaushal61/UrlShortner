@@ -1,3 +1,4 @@
+import rateLimit from 'express-rate-limit'; // Import section me sabse upar daalein
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
@@ -15,8 +16,25 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
+
+
+// 🔴 CRITICAL: Render ya kisi bhi cloud platform ke liye zaroori hai
+// Yeh Express ko batata hai ki reverse proxy ke peeche chhupe actual user IP ko read kare
+app.set('trust proxy', 1);
+
+// 🟢 Rate Limiter Configuration
+const shortenLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minute ka time window
+  max: 10, // Ek IP address ko 15 minute me sirf 10 URL banane ki permission
+  message: { 
+    error: 'Aapne bahut zyada URLs bana liye hain. Kripya 15 minute baad try karein.' 
+  },
+  standardHeaders: true, // Headers me bacha hua quota bheje (RateLimit-Limit)
+  legacyHeaders: false,
+});
+
 // 1. POST /api/shorten - Long URL ko chota karne ke liye
-app.post('/api/shorten', async (req, res) => {
+app.post('/api/shorten', shortenLimiter, async (req, res) => {
   try {
     const { longUrl } = req.body;
 
