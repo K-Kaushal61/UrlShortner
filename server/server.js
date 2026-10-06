@@ -1,4 +1,4 @@
-import rateLimit from 'express-rate-limit'; // Import section me sabse upar daalein
+import rateLimit from 'express-rate-limit';
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
@@ -12,54 +12,41 @@ const app = express();
 const prisma = new PrismaClient();
 const PORT = process.env.PORT || 5000;
 
-// Middleware
 app.use(cors());
 app.use(express.json());
 
-
-
-// 🔴 CRITICAL: Render ya kisi bhi cloud platform ke liye zaroori hai
-// Yeh Express ko batata hai ki reverse proxy ke peeche chhupe actual user IP ko read kare
 app.set('trust proxy', 1);
 
-// 🟢 Rate Limiter Configuration
 const shortenLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minute ka time window
-  max: 10, // Ek IP address ko 15 minute me sirf 10 URL banane ki permission
-  message: { 
-    error: 'Aapne bahut zyada URLs bana liye hain. Kripya 15 minute baad try karein.' 
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: {
+    error: 'Aapne bahut zyada URLs bana liye hain. Kripya 15 minute baad try karein.'
   },
-  standardHeaders: true, // Headers me bacha hua quota bheje (RateLimit-Limit)
+  standardHeaders: true,
   legacyHeaders: false,
 });
 
-// 1. POST /api/shorten - Long URL ko chota karne ke liye
 app.post('/api/shorten', shortenLimiter, async (req, res) => {
   try {
     const { longUrl } = req.body;
 
-    // 1. Basic Check (Khali toh nahi hai?)
     if (!longUrl) {
       return res.status(400).json({ error: 'Long URL is required' });
     }
 
-    // 2. Strict URL Validation & Protocol Check (Security Fix)
     try {
       const parsedUrl = new URL(longUrl);
-      
-      // Sirf http:// aur https:// allow karein. (Taaki ftp:// ya javascript:// block ho jaye)
+
       if (parsedUrl.protocol !== 'http:' && parsedUrl.protocol !== 'https:') {
         return res.status(400).json({ error: 'Only HTTP and HTTPS URLs are allowed' });
       }
     } catch (err) {
-      // Agar 'new URL()' fail ho gaya, matlab format galat hai
       return res.status(400).json({ error: 'Invalid URL format' });
     }
 
-    // 3. 6 characters ka ek unique short code generate karte hain
     const shortCode = nanoid(6);
 
-    // 4. Database mein save karte hain
     const newUrl = await prisma.url.create({
       data: {
         longUrl,
@@ -67,18 +54,14 @@ app.post('/api/shorten', shortenLimiter, async (req, res) => {
       },
     });
 
-
-// 5. Client ko short URL bhejte hain
     const shortUrl = `https://urlshortner-wdu6.onrender.com/${newUrl.shortCode}`;
     return res.status(201).json({ shortUrl, originalUrl: newUrl.longUrl });
-
   } catch (error) {
     console.error('Error shortening URL:', error);
     return res.status(500).json({ error: 'Internal Server Error' });
   }
 });
 
-// 2. GET /:shortCode - Short URL se redirect karne ke liye
 app.get('/:shortCode', async (req, res) => {
   try {
     const { shortCode } = req.params;
@@ -92,7 +75,6 @@ app.get('/:shortCode', async (req, res) => {
     }
 
     return res.redirect(urlEntry.longUrl);
-
   } catch (error) {
     console.error('Error redirecting:', error);
     return res.status(500).json({ error: 'Internal Server Error' });
