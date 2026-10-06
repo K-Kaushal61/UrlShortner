@@ -20,7 +20,19 @@ function App() {
 });
       setShortUrl(response.data.shortUrl);
     } catch (err) {
-      setError('Error, please check the URL and try again.');
+      // Agar error backend se aaya hai (status 400, 429, 500)
+      if (err.response && err.response.data && err.response.data.error) {
+        // Backend ka bheja hua exact message UI me dikhayein
+        setError(err.response.data.error);
+      } 
+      // Agar backend down hai ya internet nahi chal raha
+      else if (err.request) {
+        setError('Network error. Server se connect nahi ho pa raha.');
+      } 
+      // Kisi aur unexpected error ke liye
+      else {
+        setError('Kuch galat ho gaya. Kripya baad me try karein.');
+      }
     } finally {
       setLoading(false);
     }
